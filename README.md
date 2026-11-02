@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# World Map Interactive with Next.js, Prisma & PostgreSQL
 
-## Getting Started
+Aplicación Full-Stack en Next.js (App Router, TypeScript y Tailwind CSS) que muestra un mapa mundi interactivo SVG con porcentajes asignados a cada país (y valor por defecto de X%).
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🏛️ Arquitectura del Proyecto
+
+1. **Base de Datos (Prisma ORM + PostgreSQL)**:
+   - Schema en [`prisma/schema.prisma`](file:///home/iamstupid/Repository/GPST/prisma/schema.prisma) con el modelo `Country`:
+     - `id`: Identificador único (UUID).
+     - `code`: Código ISO 3166-1 alpha-3 único (e.g. `USA`, `MEX`, `ESP`, `COL`).
+     - `name`: Nombre descriptivo del país.
+     - `percentage`: Valor flotante asignado (default `X%`).
+   - Script de Seed en [`prisma/seed.ts`](file:///home/iamstupid/Repository/GPST/prisma/seed.ts) con soporte para `upsert` y valor base de porcentaje.
+   - Singleton de conexión optimizado en [`src/lib/prisma.ts`](file:///home/iamstupid/Repository/GPST/src/lib/prisma.ts).
+
+2. **Backend / API (Next.js App Router)**:
+   - Route Handler en [`src/app/api/countries/route.ts`](file:///home/iamstupid/Repository/GPST/src/app/api/countries/route.ts) atendiendo solicitudes `GET /api/countries`.
+   - Incluye fallback graceful para permitir el renderizado y prueba inmediata de la UI interactiva mientras se inicia el servicio PostgreSQL.
+
+3. **Capa de Comunicación (SWR)**:
+   - Hook reactivo [`useCountries`](file:///home/iamstupid/Repository/GPST/src/hooks/useCountries.ts) con SWR.
+   - Provee indexación O(1) con `Map` por código ISO, estado de carga (`isLoading`), y revalidación.
+
+4. **Frontend / UI**:
+   - Componente [`WorldMap`](file:///home/iamstupid/Repository/GPST/src/components/WorldMap.tsx) con `react-simple-maps` y `react-tooltip`.
+   - TopoJSON local de alta eficiencia en [`public/world-110m.json`](file:///home/iamstupid/Repository/GPST/public/world-110m.json).
+   - Conversión de identificadores ISO en [`src/lib/geoUtils.ts`](file:///home/iamstupid/Repository/GPST/src/lib/geoUtils.ts).
+   - Escala cromática dinámica (D3) según el porcentaje del país y tarjeta flotante interactiva al hacer click o hover.
+
+---
+
+## 🚀 Puesta en Marcha
+
+### 1. Variables de Entorno (.env)
+Asegúrate de tener configurada tu cadena de conexión a PostgreSQL en `.env`:
+```env
+DATABASE_URL="postgresql://usuario:password@localhost:5432/gpst_db?schema=public"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Ejecutar Migraciones y Seed en PostgreSQL
+```bash
+# Aplicar migración inicial
+npx prisma migrate dev --name init
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Poblar la base de datos con los países y porcentajes iniciales
+npm run db:seed
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 3. Iniciar Servidor de Desarrollo
+```bash
+npm run dev
+```
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
