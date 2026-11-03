@@ -1,0 +1,58 @@
+# Despliegue del DSS: PostgreSQL 16 (Data Warehouse), API FastAPI, ETL (job) y frontend Next.js.
+#   docker compose up -d db api web      # servicio
+#   docker compose run --rm etl          # carga/recarga de datos (programable con cron)
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dss_textil
+      POSTGRES_USER: dss
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dss_local}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dss -d dss_textil"]
+      interval: 10s
+      retries: 5
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg2://dss:${POSTGRES_PASSWORD:-dss_local}@db:5432/dss_textil
+      DSS_CORS_ORIGINS: http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  etl:
+    build: ./backend
+    profiles: ["etl"]
+    command: ["python", "-m", "dss.pipeline"]
+    environment:
+      DATABASE_URL: postgresql+psycopg2://dss:${POSTGRES_PASSWORD:-dss_local}@db:5432/dss_textil
+    volumes:
+      - ./backend/data/raw:/app/data/raw
+      - ./backend/artifacts:/app/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      args:
+        DSS_API_URL: http://api:8000
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

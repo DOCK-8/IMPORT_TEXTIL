@@ -27,6 +27,14 @@ export const NUMERIC_TO_ALPHA3: Record<string, string> = {
   "800": "UGA", "804": "UKR", "784": "ARE", "826": "GBR", "840": "USA",
   "858": "URY", "860": "UZB", "862": "VEN", "704": "VNM", "887": "YEM",
   "894": "ZMB", "716": "ZWE",
+  "834": "TZA", "732": "ESH", "044": "BHS", "238": "FLK", "304": "GRL", "260": "ATF",
+  "626": "TLS", "084": "BLZ", "328": "GUY", "740": "SUR", "630": "PRI", "204": "BEN",
+  "384": "CIV", "624": "GNB", "694": "SLE", "854": "BFA", "226": "GNQ", "748": "SWZ",
+  "108": "BDI", "275": "PSE", "270": "GMB", "548": "VUT", "104": "MMR", "064": "BTN",
+  "762": "TJK", "417": "KGZ", "795": "TKM", "051": "ARM", "112": "BLR", "498": "MDA",
+  "428": "LVA", "233": "EST", "540": "NCL", "090": "SLB", "158": "TWN", "096": "BRN",
+  "232": "ERI", "010": "ATA", "262": "DJI", "807": "MKD", "499": "MNE", "780": "TTO",
+  "728": "SSD",
 };
 
 // Respaldo de normalización por nombre común
